@@ -16,7 +16,7 @@ import numpy as np
 SCENE_FILE = join(dirname(abspath(__file__)),
                   'scene_reinforcement_learning_env.ttt')
 POS_MIN, POS_MAX = [0.8, -0.2, 1.0], [1.0, 0.2, 1.4]
-EPISODES = 5
+EPISODES = 500
 EPISODE_LENGTH = 200
 
 
@@ -79,9 +79,13 @@ for e in range(EPISODES):
 
     print('Starting episode %d' % e)
     state = env.reset()
+    # print("state", state)
     for i in range(EPISODE_LENGTH):
         action = agent.act(state)
+        # print("action", action, np.array(action).shape)
         reward, next_state = env.step(action)
+        # print("reward", reward, reward, np.array(reward).shape)
+        # print("next_state", next_state, np.array(next_state).shape)
         replay_buffer.append((state, action, reward, next_state))
         state = next_state
         agent.learn(replay_buffer)
