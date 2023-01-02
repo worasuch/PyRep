@@ -58,6 +58,8 @@ setup(name='PyRep',
                 'pyrep.robots.configuration_paths',
                 'pyrep.textures',
                 'pyrep.misc',
+                'pyrep.robots.legged_robots', 
+                'tests', # TODO happ added, legged_robots & tests
                 ],
       ext_modules=[cffi_build.ffibuilder.distutils_extension(
           join('build', 'pyrep', 'backend'))],
