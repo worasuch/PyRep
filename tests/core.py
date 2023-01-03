@@ -12,7 +12,7 @@ class TestCore(unittest.TestCase):
 
     def setUp(self):
         self.pyrep = PyRep()
-        self.pyrep.launch(path.join(ASSET_DIR, 'test_scene_slalom.ttt'), headless=True)
+        self.pyrep.launch(path.join(ASSET_DIR, 'test_scene_slalom.ttt'), headless=False)
         self.pyrep.step()
         self.pyrep.start()
 

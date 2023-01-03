@@ -26,6 +26,19 @@ class LeggedRobotComponent(Object):
         self.leg_joints = [Joint(_leg_joint_name)
                             for _leg_joint_name in leg_joint_name]
         self._leg_joints_handles = [_leg_joints.get_handle() for _leg_joints in self.leg_joints]
+        
+        """
+        # leg ball joints handle
+        leg_ball_joint_name = [
+                            "/Leg4_ball1", "/Leg4_ball2",
+                            "/Leg3_ball1", "/Leg3_ball2",
+                            "/Leg2_ball1", "/Leg2_ball2",
+                            "/Leg1_ball1", "/Leg1_ball2",
+                            ]
+        self.leg_ball_joints = [Joint(_leg_ball_joint_name)
+                                for _leg_ball_joint_name in leg_ball_joint_name]
+        self._leg_ball_joints_handles = [_leg_ball_joints.get_handle() for _leg_ball_joints in self.leg_ball_joints]
+        """
 
         """
         # joint 1
@@ -119,27 +132,147 @@ class LeggedRobotComponent(Object):
         """
         return ObjectType(sim.simGetObjectType(self.get_handle()))
 
-    # -- leg joints function -- #
-    def get_leg_joint_position(self) -> List[float]:
+
+    # --- Leg Joints Function --- #
+    # --------------------------- #
+
+    def get_leg_joint_positions(self) -> List[float]:
+        """Retrieves the intrinsic position of the joints.
+
+        See :py:meth:`Joint.get_joint_position` for more information.
+
+        :return: A list of intrinsic position of the joints.
+        """
         return [_leg_joints.get_joint_position() for _leg_joints in self.leg_joints]
     
-    def set_leg_joint_position(self, positions: List[float],
+    def set_leg_joint_positions(self, positions: List[float],
                                 disable_dynamics: bool = False) -> None:
+        """Sets the intrinsic position of the joints.
+
+        See :py:meth:`Joint.set_joint_position` for more information.
+
+        :param disable_dynamics: If True, then the position can be set even
+            when the joint mode is in Force mode. It will disable dynamics,
+            move the joint, and then re-enable dynamics.
+
+        :param positions: A list of positions of the joints (angular or linear
+            values depending on the joint type).
+        """
         if not disable_dynamics:
-            [sim.simSetJointPosition(jh,p)
+            [sim.simSetJointPosition(jh, p)     # type: ignore
             for jh, p in zip(self._leg_joints_handles, positions)]
+            return
+    
+        is_model = self.is_model()
+        if not is_model:
+            self.set_model(True)
+        
+        prior = sim.simGetModelProperty(self.get_handle())
+        p = prior | sim.sim_modelproperty_not_dynamic
+        # Disable the dynamics
+        sim.simSetModelProperty(self._handle, p)
+        with utils.step_lock:
+            sim.simExtStep(True)                # Have to step for change to take effect
+
+        [sim.simSetJointPosition(jh, p)         # type: ignore
+         for jh, p in zip(self._leg_joints_handles, positions)]
+        [j.set_joint_target_position(p)         # type: ignore
+         for j, p in zip(self.leg_joints, positions)]
+        with utils.step_lock:
+            sim.simExtStep(True)        # Have to step for change to take effect
+        # Re-enable the dynamics
+        sim.simSetModelProperty(self._handle, prior)
+        self.set_model(is_model)
+
+    # TODO NOT Work!!
+    def get_leg_joint_forces(self) -> List[float]:
+        """Retrieves the forces or torques of the joints.
+
+        See :py:meth:`Joint.get_joint_force` for more information.
+
+        :return: A list of the forces or the torques applied to the joints
+            along/about their z-axis.
+        """        
+        return [_leg_joints.get_joint_force() for _leg_joints in self.leg_joints]
+
+    def get_leg_joint_velocities(self) -> List[float]:
+        """Get the current joint velocities.
+
+        :return: List containing the velocities of the joints (linear or
+            angular velocities depending on the joint-type).
+        """
+        return [_leg_joints.get_joint_velocity() for _leg_joints in self.leg_joints]
+    
+    def set_leg_control_loop_enabled(self, value: bool) -> None:
+        """Sets whether the control loop is enable for all joints.
+
+        :param value: The new value for the control loop state.
+        """
+        [_leg_joints.set_control_loop_enabled(value)        # type: ignore
+         for _leg_joints in self.leg_joints]
 
 
 
-    # -- body joints function -- #
-    def get_body_joint_position(self) -> List[float]:
+
+    # --- Body Joints Function --- #
+    # ---------------------------- #
+
+    def get_body_joint_positions(self) -> List[float]:
         return [_body_joints.get_joint_position() for _body_joints in self.body_joints]
+
+    def set_body_joint_positions(self, position: List[float],
+                                disable_dynamics: bool = False) -> None:
+
+        if not disable_dynamics:
+            [sim.simSetJointPosition(jh, p)     # type: ignore
+            for jh, p in zip(self._body_joints_handles, position)]
+            return
+        
+        is_model = self.is_model()
+        if not is_model:
+            self.set_model(True)
+
+        prior = sim.simGetModelProperty(self.get_handle())
+        p = prior | sim.sim_modelproperty_not_dynamic
+        # Disable the dynamics
+        sim.simSetModelProperty(self._handle, p)
+        with utils.step_lock:
+            sim.simExtStep(True)            # Have to step for changes to take effect
+
+        [sim.simSetJointPosition(jh, p)     # type: ignore 
+         for jh, p in zip(self._body_joints_handles, position)]
+        [j.set_joint_traget_position(p)     # type: ignore
+         for j, p in zip(self.body_joints, position)]
+        with utils.step_lock:
+            sim.simExtStep(True)            # Have to step for change to take effect
+        # Re-enable the dynamics
+        sim.simSetModelProperty(self._handle, prior)
+        self.set_model(is_model)
+
+    # TODO NOT Work!!
+    def get_body_joint_forces(self) -> List[float]:     
+        return [_body_joints.get_joint_force() for _body_joints in self.body_joints]
+
+    def get_body_joint_velocities(self) -> List[float]:
+        return [_body_joints.get_joint_velocity() for _body_joints in self.body_joints]
+
+    def set_body_control_loop_enabled(self, value: bool) -> None:
+        [_body_joints.set_control_loop_enabled(value)        # type: ignore
+         for _body_joints in self.body_joints]
+
+
+
+
+
+    # --- Tip Joints Function --- #
+    # --------------------------- #
     
     def get_leg_tip_position(self) -> List[float]:
         return [_leg_tip.get_position() for _leg_tip in self.leg_tip]
 
-    # def get_tip_color(self) -> np.ndarray:
-    #     return self.tip_lh.get_orientation()
+
+    # --- Sensor/Measurment Function --- #
+    # ---------------------------------- #
 
     def get_imu_data(self) -> np.ndarray:
         return self.imu.get_orientation()
