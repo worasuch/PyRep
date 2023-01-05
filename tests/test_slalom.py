@@ -7,19 +7,24 @@ class TestSlalom(TestCore):
     def setUp(self):
         super().setUp()
         self.agent = Slalom()
-        self.agent.set_leg_control_loop_enabled(False)
-        self.agent.set_body_control_loop_enabled(False)
+        self.agent.set_leg_control_loop_enabled(True)
+        self.agent.set_body_control_loop_enabled(True)
 
     def test_joints(self):
         # leg_joints = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        # self.agent.set_leg_joint_positions(leg_joints)
+        # self.agent.set_leg_joint_target_positions(leg_joints)
         # leg_joint_speed = self.agent.get_leg_joint_velocities()
         # leg_joint_speed = self.agent.get_leg_joint_forces()
         # print(leg_joint_speed)
-        body_joints = [0.2, 0.2, 0.2]
-        self.agent.set_body_joint_positions(body_joints)
-        body = self.agent.get_body_joint_velocities()
-        print(body)
+        # body_joints = [0.2, 0.2, 0.2]
+        # self.agent.set_body_joint_positions(body_joints)
+        # imupos = self.agent.get_imu_positions()
+        # imuort = self.agent.get_imu_orientations()
+        # dist_l = self.agent.get_dist_of_left_tips()
+        # dist_r = self.agent.get_dist_of_right_tips()
+        dist_ft = self.agent.get_dist_floor_tips()
+        dist_v = self.agent.get_leg_tip_velocities()
+        print(dist_ft, dist_v[0][0][0])
     
 
     """
