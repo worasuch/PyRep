@@ -58,6 +58,15 @@ class LeggedRobotComponent(Object):
         self._leg_tip_handles = [_leg_tip.get_handle() for _leg_tip in self.leg_tip]
 
 
+        # -- motor2 handle -- #
+        motor2_name = [
+                    "/motor2_lf", "/motor2_lh", "/motor2_rh", "/motor2_rf"
+                    ]
+        self.motor2 = [Shape(_motor2_name)
+                        for _motor2_name in motor2_name]
+        self._motor2_handles = [_motor2.get_handle() for _motor2 in self.motor2]
+
+
         # -- others handle -- #
         self.imu = Dummy("/Imu")
         self._imu = self.imu.get_handle()
@@ -229,11 +238,25 @@ get_orientationn of the joints (angular or
 
     def get_leg_tip_velocities(self) -> List[float]:
         return [_leg_tip.get_velocity() for _leg_tip in self.leg_tip]
+    
+    def get_leg_atip_velocity(self, tip: int) -> float:
+        return self.leg_tip[tip].get_velocity()
+
+    def get_leg_tip_orientation(self) -> List[float]:
+        return [_leg_tip.get_orientation() for _leg_tip in self.leg_tip]
+    
+    def get_leg_atip_orientation(self, tip: int) -> float:
+        return self.leg_tip[tip].get_orientation()
+
 
     # distance between floor and tips
     def get_dist_floor_tips(self) -> List[float]:
         return [_leg_tip.check_distance(self.floor)
                 for _leg_tip in self.leg_tip]
+    
+    # distance between floor and "A tip"
+    def get_dist_floor_atip(self, tip: int) -> float:
+        return self.leg_tip[tip].check_distance(self.floor)
 
 
 
@@ -250,7 +273,37 @@ get_orientationn of the joints (angular or
 
     # distance betweet front and hind tip in the same side 
     def get_dist_of_left_tips(self) -> float:
-        return self.leg_tip[0].check_distance(self.leg_tip[1])      # distance between tip of LR and LH
+        return self.leg_tip[0].check_distance(self.leg_tip[1])      # distance between tip of LF and LH
 
     def get_dist_of_right_tips(self) -> float:
         return self.leg_tip[2].check_distance(self.leg_tip[3])      # distance between tip of RH and RF
+
+    # distance betweet tip in front or hind
+    def get_dist_of_front_tips(self) -> float:
+        return self.leg_tip[0].check_distance(self.leg_tip[3])      # distance between tip of LF and RF
+
+    def get_dist_of_hind_tips(self) -> float:
+        return self.leg_tip[1].check_distance(self.leg_tip[2])      # distance between tip of LH and RH
+
+    # distance between floor and motor2
+    def get_dist_floor_motors_No2(self) -> List[float]:             # distance between floor and motor2 of each leg
+        return[_motor2.check_distance(self.floor)
+               for _motor2 in self.motor2]
+
+    # distance between motor2 and tip for each leg
+    def get_dist_motor2_tips(self) -> List[float]:
+        return [self.leg_tip[i].check_distance(self.motor2[i])      # distance between motor2 and tip for ALL
+                for i, _ in enumerate(self.leg_tip)]
+
+    def get_dist_motor2_tip_lf(self) -> float:
+        return self.leg_tip[0].check_distance(self.motor2[0])       # distance between motor2 and tip of LF
+
+    def get_dist_motor2_tip_lh(self) -> float:
+        return self.leg_tip[1].check_distance(self.motor2[1])       # distance between motor2 and tip of LH
+
+    def get_dist_motor2_tip_rh(self) -> float:
+        return self.leg_tip[2].check_distance(self.motor2[2])       # distance between motor2 and tip of RH
+
+    def get_dist_motor2_tip_rf(self) -> float:
+        return self.leg_tip[3].check_distance(self.motor2[3])       # distance between motor2 and tip of RF
+
