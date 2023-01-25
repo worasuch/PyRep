@@ -22,9 +22,12 @@ class TestSlalom(TestCore):
         # imuort = self.agent.get_imu_orientations()
         # dist_l = self.agent.get_dist_of_left_tips()
         # dist_r = self.agent.get_dist_of_right_tips()
-        dist_f = self.agent.get_leg_tip_orientation()
-        dist_h = self.agent.get_dist_motor2_tip_rf()
-        print(dist_f, dist_f[0], dist_f[1])
+        # dist_f = self.agent.get_leg_tip_orientation()
+        # dist_h = self.agent.get_dist_motor2_tip_rf()
+        # print(dist_f, dist_f[0], dist_f[1])
+        # self.agent.add_force_tips()
+        force = self.agent.get_force_sensors()
+        print(force)
     
 
     """

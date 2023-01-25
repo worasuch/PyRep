@@ -4,6 +4,7 @@ from typing import List, Tuple
 
 from pyrep.objects.shape import Shape
 from pyrep.objects.dummy import Dummy
+from pyrep.objects.force_sensor import ForceSensor
 
 from pyrep.backend import sim, utils
 from pyrep.const import JointType
@@ -66,12 +67,20 @@ class LeggedRobotComponent(Object):
                         for _motor2_name in motor2_name]
         self._motor2_handles = [_motor2.get_handle() for _motor2 in self.motor2]
 
+        # -- force sensors  -- #
+        force_sensors_name = [
+                            "/fc_lf", "/fc_lh", "/fc_rh", "/fc_rf"
+                            ]
+        self.force_sensors = [ForceSensor(_force_sensors_name)
+                                for _force_sensors_name in force_sensors_name]
+        self._force_sensors_handles = [_force_sensors.get_handle() for _force_sensors in self.force_sensors]
+
 
         # -- others handle -- #
         self.imu = Dummy("/Imu")
         self._imu = self.imu.get_handle()
         self.floor = Shape("/floor")
-        self._floor = self.floor.get_handle()
+        self._floor = self.floor.get_handle() 
 
 
     def _get_requested_type(self) -> ObjectType:
@@ -139,7 +148,7 @@ class LeggedRobotComponent(Object):
         """Sets the target positions of the joints.
 
         See :py:meth:`Joint.set_joint_target_position` for more information.
-get_orientationn of the joints (angular or
+            get_orientationn of the joints (angular or
             linear values depending on the joint type).
         """
         [_leg_joints.set_joint_target_position(p)
@@ -258,6 +267,24 @@ get_orientationn of the joints (angular or
     def get_dist_floor_atip(self, tip: int) -> float:
         return self.leg_tip[tip].check_distance(self.floor)
 
+    # add force to all tip
+    def add_force_tips(self) -> None:
+        force_position = np.array([0,0,0])      # add force to center of pad
+        force_to_apply = np.array([0,0,-5])     # 5 newton to -z
+        reset_force_torque = True
+        for _leg_tip in self.leg_tip:
+            _leg_tip.add_force(force_position,force_to_apply,reset_force_torque)
+
+    # add force to "A tip"
+    def add_force_atip(self, tip: int) -> None:
+        force_position = np.array([0,0,0])
+        force_to_apply = np.array([0,0,-5])
+        reset_force_torque = True
+        self.leg_tip[tip].add_force(force_position,force_to_apply,reset_force_torque)
+
+    # set color "A tip"
+    def set_color_atip(self, tip: int, _colors: List[float]) -> None:
+        self.leg_tip[tip].set_color(_colors) 
 
 
 
@@ -307,3 +334,7 @@ get_orientationn of the joints (angular or
     def get_dist_motor2_tip_rf(self) -> float:
         return self.leg_tip[3].check_distance(self.motor2[3])       # distance between motor2 and tip of RF
 
+
+    def get_force_sensors(self) -> List[float]:
+        return [self.force_sensors[i].read()      # distance between motor2 and tip for ALL
+                for i, _ in enumerate(self.force_sensors)]

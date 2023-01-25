@@ -59,6 +59,14 @@ class SlalomEnv(object):
         abs_atip_roll = abs(atip_rot[0])
         abs_atip_pitch = abs(atip_rot[1])
 
+        # add force when tip rotation is in the right orientation
+        if abs_atip_roll <= _tip_rot_threshould and abs_atip_pitch <= _tip_rot_threshould:
+            self.agent.add_force_atip(_stand_one)
+            # print("add force", _stand_one)
+            self.agent.set_color_atip(_stand_one, [1.0,0.0,0.0])
+        else:
+            self.agent.set_color_atip(_stand_one, [0.0,1.0,0.0])
+
         _tip_rot_score = 0
         if abs_atip_roll > _tip_rot_threshould:
             _tip_rot_score += 1
@@ -112,7 +120,7 @@ class SlalomEnv(object):
 
         # -- slipping
         vel_threshold = 0.025
-        min_dist = 0.01
+        min_dist = 0.005
         # check stadning leg and then that leg sloipping or not?
         slipping_results = [(self._slipping_detector(i[0], vel_threshold)) for i in enumerate(self.agent.get_dist_floor_tips()) if i[1] < min_dist]
         # slipping score (slipping_score = 1 if a leg slip or 4 if 4-leg slip)
@@ -147,6 +155,9 @@ class SlalomEnv(object):
         self.agent.set_leg_joint_target_positions(action[:16])          # Execute action on leg
         self.agent.set_body_joint_target_positions(action[16:19])       # Execute action on body
         self.pr.step()                                                  # Step the physics simulation
+        # self.agent.add_force_tips()
+        # force = self.agent.get_force_sensors()
+        # print(force)
         # ax, ay, az = self.agent_ee_tip.get_position()
         # tx, ty, tz = self.target.get_position()
         # Reward is negative distance to target
