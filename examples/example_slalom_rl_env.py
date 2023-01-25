@@ -17,7 +17,7 @@ import math
 # import time
 
 SCENE_FILE = join(dirname(abspath(__file__)),
-                  'scene_slalom_rl_env.ttt')
+                  'scene_slalom_fixedbody.ttt')
 # POS_MIN, POS_MAX = [0.8, -0.2, 1.0], [1.0, 0.2, 1.4]
 EPISODES = 10 #500
 EPISODE_LENGTH = 200
@@ -32,20 +32,20 @@ class SlalomEnv(object):
         # time.sleep(0.5)
         self.agent = Slalom()
         self.agent.set_leg_control_loop_enabled(False)
-        self.agent.set_body_control_loop_enabled(False)
+        # self.agent.set_body_control_loop_enabled(False)
 
         self.initial_position = self.agent.get_imu_positions()
         self.initial_orientation = self.agent.get_imu_orientations()
         self.initial_leg_joint_positions = self.agent.get_leg_joint_positions()
-        self.initial_body_joint_positions = self.agent.get_body_joint_positions()
+        # self.initial_body_joint_positions = self.agent.get_body_joint_positions()
 
     def _get_state(self):
         # Return state containing arm joint angles/velocities & target position
         return np.concatenate([
                                 self.agent.get_leg_joint_positions(),
                                 self.agent.get_leg_joint_velocities(),
-                                self.agent.get_body_joint_positions(),
-                                self.agent.get_body_joint_velocities(),
+                                # self.agent.get_body_joint_positions(),
+                                # self.agent.get_body_joint_velocities(),
                                 ])
     
     def _slipping_detector(self, _stand_one: int, _vel_threshould: float):
@@ -148,12 +148,12 @@ class SlalomEnv(object):
         # self.target.set_position(pos)
         self.agent.set_leg_joint_target_positions(self.initial_leg_joint_positions)
         # print(self.initial_leg_joint_positions)
-        self.agent.set_body_joint_target_positions(self.initial_body_joint_positions)
+        # self.agent.set_body_joint_target_positions(self.initial_body_joint_positions)
         return self._get_state()
 
     def step(self, action):
         self.agent.set_leg_joint_target_positions(action[:16])          # Execute action on leg
-        self.agent.set_body_joint_target_positions(action[16:19])       # Execute action on body
+        # self.agent.set_body_joint_target_positions(action[16:19])       # Execute action on body
         self.pr.step()                                                  # Step the physics simulation
         # self.agent.add_force_tips()
         # force = self.agent.get_force_sensors()

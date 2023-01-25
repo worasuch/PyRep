@@ -15,7 +15,7 @@ from pyrep.const import ObjectType, JointMode
 
 class LeggedRobotComponent(Object):
     def __init__(self):
-        super().__init__("/geckobotiv")
+        super().__init__("/geckobotiv_fixedbody")
 
         # -- leg joints handle -- #
         leg_joint_name = [  
@@ -42,13 +42,14 @@ class LeggedRobotComponent(Object):
         """
 
         # -- body joints handle -- #
+        """
         body_joint_name = [
                         "/joint_b1", "/joint_b2", "/joint_b3"
                         ]
         self.body_joints = [Joint(_body_joint_name)
                             for _body_joint_name in body_joint_name]
         self._body_joints_handles = [_body_joints.get_handle() for _body_joints in self.body_joints]
-
+        """
 
         # -- pads handle -- #
         leg_tip_name = [
@@ -186,7 +187,7 @@ class LeggedRobotComponent(Object):
 
     # --- Body Joints Function --- #
     # ---------------------------- #
-
+    """
     def get_body_joint_positions(self) -> List[float]:
         return [_body_joints.get_joint_position() for _body_joints in self.body_joints]
 
@@ -233,7 +234,7 @@ class LeggedRobotComponent(Object):
     def set_body_control_loop_enabled(self, value: bool) -> None:
         [_body_joints.set_control_loop_enabled(value)        # type: ignore
          for _body_joints in self.body_joints]
-
+    """
 
 
 

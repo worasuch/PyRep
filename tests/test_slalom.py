@@ -8,7 +8,7 @@ class TestSlalom(TestCore):
         super().setUp()
         self.agent = Slalom()
         self.agent.set_leg_control_loop_enabled(True)
-        self.agent.set_body_control_loop_enabled(True)
+        # self.agent.set_body_control_loop_enabled(True)
 
     def test_joints(self):
         # leg_joints = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
