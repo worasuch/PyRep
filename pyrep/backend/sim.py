@@ -173,8 +173,8 @@ def simGetJointForce(jointHandle):
     force = ffi.new('float *')
     ret = lib.simGetJointForce(jointHandle, force)
     _check_return(ret)
-    if ret == 0:
-        raise RuntimeError('No value available yet.')
+    # if ret == 0:          # TODO Happ changed, always 0 at the beginning
+    #    raise RuntimeError('No value available yet.')
     return force[0]
 
 
