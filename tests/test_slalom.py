@@ -26,9 +26,9 @@ class TestSlalom(TestCore):
         # dist_h = self.agent.get_dist_motor2_tip_rf()
         # print(dist_f, dist_f[0], dist_f[1])
         # self.agent.add_force_tips()
-        force = self.agent.get_force_sensors()
-        print(force)
-    
+        body_pos = self.agent.get_body_positions()
+        body_rot = self.agent.get_body_orientations()
+        print(f"{body_pos}, {body_rot}")    
 
     """
     def test_read_leg_joint(self):

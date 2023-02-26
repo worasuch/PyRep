@@ -17,7 +17,7 @@ import math
 # import time
 
 SCENE_FILE = join(dirname(abspath(__file__)),
-                  'scene_slalom_fixedbody.ttt')
+                  'scene_slalom_fixedbody_rl_env.ttt')
 # POS_MIN, POS_MAX = [0.8, -0.2, 1.0], [1.0, 0.2, 1.4]
 EPISODES = 10 #500
 EPISODE_LENGTH = 200
@@ -40,10 +40,12 @@ class SlalomEnv(object):
         # self.initial_body_joint_positions = self.agent.get_body_joint_positions()
 
     def _get_state(self):
+        # print(f"body rot: {self.agent.get_body_orientations()} body pos: {self.agent.get_body_positions()}")
         # Return state containing arm joint angles/velocities & target position
         return np.concatenate([
                                 self.agent.get_leg_joint_positions(),
                                 self.agent.get_leg_joint_velocities(),
+                                # self.agent.get_leg_joint_forces()
                                 # self.agent.get_body_joint_positions(),
                                 # self.agent.get_body_joint_velocities(),
                                 ])

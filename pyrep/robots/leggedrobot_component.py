@@ -81,7 +81,9 @@ class LeggedRobotComponent(Object):
         self.imu = Dummy("/Imu")
         self._imu = self.imu.get_handle()
         self.floor = Shape("/floor")
-        self._floor = self.floor.get_handle() 
+        self._floor = self.floor.get_handle()
+        self.body = Shape("/geckobotiv_fixedbody")
+        self._body = self.body.get_handle()
 
 
     def _get_requested_type(self) -> ObjectType:
@@ -291,6 +293,13 @@ class LeggedRobotComponent(Object):
 
     # --- Sensor/Measurment Function --- #
     # ---------------------------------- #
+
+    # body
+    def get_body_positions(self) -> np.ndarray:
+        return self.body.get_position()
+    
+    def get_body_orientations(self) -> np.ndarray:
+        return self.body.get_orientation()
 
     # imu data
     def get_imu_positions(self) -> np.ndarray:
