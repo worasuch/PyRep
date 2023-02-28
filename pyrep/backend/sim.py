@@ -1492,3 +1492,9 @@ def simGetLightParameters(shapeHandle):
     ret = lib.simGetLightParameters(shapeHandle, ffi.NULL, diffusePart, specularPart)
     _check_return(ret)
     return ret, list(diffusePart), list(specularPart)
+
+# TODO happ added, terrain randomization 
+def simCreateHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights):
+    ret = lib.simCreateHeightfieldShape(options, shadingAngle, xPointCount, yPointCount, xSize, heights)
+    _check_return(ret)
+    return ret

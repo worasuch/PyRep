@@ -260,7 +260,7 @@ class LeggedRobotComponent(Object):
     def get_leg_atip_orientation(self, tip: int) -> float:
         return self.leg_tip[tip].get_orientation()
 
-
+    # """
     # distance between floor and tips
     def get_dist_floor_tips(self) -> List[float]:
         return [_leg_tip.check_distance(self.floor)
@@ -269,6 +269,7 @@ class LeggedRobotComponent(Object):
     # distance between floor and "A tip"
     def get_dist_floor_atip(self, tip: int) -> float:
         return self.leg_tip[tip].check_distance(self.floor)
+    # """
 
     # add force to all tip
     def add_force_tips(self) -> None:

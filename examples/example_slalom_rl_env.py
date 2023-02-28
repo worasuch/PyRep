@@ -8,19 +8,20 @@ This script contains examples of:
     - Setting joint properties (control loop disabled, motor locked at 0 vel)
 """
 from os.path import dirname, join, abspath
+from pyrep.backend import sim
 from pyrep import PyRep
 # from pyrep.robots.arms.panda import Panda
-# from pyrep.objects.shape import Shape
+from pyrep.objects.shape import Shape
 from pyrep.robots.legged_robots.slalom import Slalom
 import numpy as np
 import math
 # import time
 
 SCENE_FILE = join(dirname(abspath(__file__)),
-                  'scene_slalom_fixedbody_rl_env.ttt')
+                  'scene_slalom_fixedbody_rl_terrainRand.ttt')
 # POS_MIN, POS_MAX = [0.8, -0.2, 1.0], [1.0, 0.2, 1.4]
-EPISODES = 10 #500
-EPISODE_LENGTH = 200
+EPISODES = 3 #500
+EPISODE_LENGTH = 500
 
 
 class SlalomEnv(object):
@@ -28,6 +29,7 @@ class SlalomEnv(object):
     def __init__(self):
         self.pr = PyRep()
         self.pr.launch(SCENE_FILE, headless=False)
+        self.terrain_rand()
         self.pr.start()
         # time.sleep(0.5)
         self.agent = Slalom()
@@ -176,6 +178,135 @@ class SlalomEnv(object):
     def stopo(self):
         self.pr.stop()
 
+    """
+    Terrain Randomization
+    """
+    def terrain_rand(self):
+
+        config = {'geom': [0.03, 0.4, 0.08, 
+                           0.0, 0.0, 0.0, 
+                           np.random.uniform(0.0, 0.2), np.random.uniform(0.0, 0.2), 0.0,
+                           np.random.uniform(0.0, 0.5), np.random.uniform(0.0, 0.7), 0.0], 
+                  'generateHf': True, 
+                  'textured': True, 
+                  'color': [0.25, 0.25, 0.25]}
+
+        # 'geom': [0.034, 0.401, 0.088, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.8, 0.8, 0.0],
+
+        """
+        potions: bit-coded options:
+        bit 0 set (1): back faces are culled
+        bit 1 set (2): overlay mesh is visible
+        bit 2 set (4): a simple shape is generated instead of a heightfield
+        bit 3 set (8): the heightfield is not respondable
+        """
+        options=4
+        if config['generateHf']:
+            options=0
+
+        xs=config['geom'][0]        # size
+        ys=config['geom'][1]        # x/y proportion
+        zs=config['geom'][2]        # height
+
+        c1fs=config['geom'][3]      # ch1 ferq
+        c1as=config['geom'][4]      # ch1 amp
+        c1ps=config['geom'][5]      # ch1 phase
+        
+        c2fs=config['geom'][6]      # ch2 ferq
+        c2as=config['geom'][7]      # ch2 amp
+        c2ps=config['geom'][8]      # ch2 phase
+
+        c3fs=config['geom'][9]      # ch3 ferq
+        c3as=config['geom'][10]     # ch3 amp
+        c3ps=config['geom'][11]     # ch3 phase
+
+        dxs=5+195*xs
+        dzs=0+20*zs
+        
+        objName = "shape"
+        objProperty = 160           # what is this number mean?
+        objSpecialProperty = 1008   # what is this number mean?
+
+
+        # -- Hills -- #
+        heights = []
+        step_heights =  []
+        stair_heights = []
+        if (ys>0.5):
+            yt=64
+            xt=6+math.floor(29*(1-ys)*2)*2
+        else:
+            xt=64
+            yt=6+math.floor(29*ys*2)*2
+
+        minw=9000
+        maxw=0
+        for y in range(yt):
+            y_=(y+1)/yt
+            for x in range(xt):
+                x_=(x+1)/xt
+                channel1=(math.sin(c1ps*math.pi*2+c1fs*(x_)*20)+math.sin(c1ps*math.pi*2+c1fs*(y_)*20))*c1as*0.5
+                channel2=(math.sin(c2ps*math.pi*2+c2fs*(x_)*60)+math.sin(c2ps*math.pi*2+c2fs*(y_)*60))*c2as*0.5
+                channel3=(math.sin(c3ps*math.pi*2+c3fs*(x_)*150)+math.sin(c3ps*math.pi*2+c3fs*(y_)*150))*c3as*0.5
+                xp=((x+1)-xt/2)/(xt/2)                
+                yp=((y+1)-yt/2)/(yt/2)                
+                r=1*math.sqrt(xp*xp+yp*yp)
+                nh=dzs/((r*r)+1)
+                if (nh<minw): minw=nh
+                if (nh>maxw): maxw=nh
+                nh=(channel1+channel2*0.5+channel3*0.1)*dzs
+                heights.append(nh)
+
+        # -- Steps -- #
+        """
+        previous_j = 0
+        for i in range(len(step_heights)):
+            if i > 10:
+                step_min = min(step_heights[i-10:i+10])
+                step_max = max(step_heights[i-10:i+10])
+            else:
+                step_min = min(step_heights[i:i+10])
+                step_max = max(step_heights[i:i+10])
+
+            j = step_heights[i]
+            if j > previous_j:
+                step_heights[i] = step_max
+            else:
+                step_heights[i] = step_min
+            previous_j = j
+        """
+        
+        # -- Stairs -- #
+        step_w = 3          # Not dimention
+        step_h = np.random.uniform(0.01, 0.03) #0.03
+        for i in range(yt):
+            stair_step = -0.4
+            for j in range(xt):
+                if j%step_w == 0 and j > math.floor(xt/2)+1:
+                    stair_step += step_h 
+                stair_heights.append(stair_step)
+
+        # terrainShape=sim.simCreateHeightfieldShape(options,0.0,xt,yt,dxs,heights)
+        terrainShape=sim.simCreateHeightfieldShape(options,0.0,xt,yt,dxs,stair_heights)
+        sim.simSetObjectName(terrainShape,objName)
+        sim.simSetModelProperty(terrainShape,objProperty)
+        sim.simSetObjectSpecialProperty(terrainShape,objSpecialProperty)
+        if config['generateHf']:
+            sim.simSetShapeColor(terrainShape,'', 0, config['color'])
+        else:
+            sim.simSetShapeColor(terrainShape,'', sim.colorcomponent_ambient_diffuse, config['color'])
+
+        """
+        terrainShape=sim.createHeightfieldShape(options,0.0,xt,yt,dxs,heights)
+        sim.setObjectAlias(terrainShape,objName)
+        sim.setObjectProperty(terrainShape,objProperty)
+        sim.setObjectSpecialProperty(terrainShape,objSpecialProperty)
+        #sim.setObjectParent(terrainShape,h,False)
+        if config['generateHf']:
+            sim.setShapeColor(terrainShape,'',0,[0.5, 0.5, 0.5])
+        else:
+            sim.setShapeColor(terrainShape,'', sim.colorcomponent_ambient_diffuse,config['color'])
+        """
 
 class Agent(object):
 
